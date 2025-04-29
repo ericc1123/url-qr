@@ -15,7 +15,7 @@
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.worker.min.js';
   </script>
 
-  <!-- JSZip for PPTX unpacking -->
+  <!-- JSZip for PPTX and ZIP unpacking -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
 
   <!-- Feather icons -->
@@ -70,7 +70,7 @@
 <main>
   <h1>URL & QR Expander</h1>
   <p class="subtitle">
-    Paste shortened links or upload images, PDFs, or PPTX — extract QR codes,
+    Paste shortened links or upload images, PDFs, PPTX, or ZIP — extract QR codes,
     see original & resolved URLs, UTM splits, and source file.
   </p>
 
@@ -87,12 +87,14 @@
   </section>
 
   <section class="card">
-    <h2><i data-feather="image"></i>Images, PDFs & PPTX</h2>
+    <h2><i data-feather="image"></i>Files (Img/PDF/PPTX/ZIP)</h2>
     <div id="dropzone" style="margin-top:18px;">
-      <span><strong>Click</strong> or drag & drop files here</span>
-      <span style="font-size:.8rem;">PNG/JPG/PDF/PPTX • multiple allowed</span>
+      <span><strong>Click</strong> or drag &amp; drop files here</span>
+      <span style="font-size:.8rem;">
+        PNG, JPG, PDF, PPTX, ZIP • multiple allowed
+      </span>
       <input type="file" id="fileInput"
-        accept="image/*,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        accept="image/*,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/zip"
         multiple hidden>
     </div>
     <div id="fileCounter">0 files selected</div>
@@ -133,16 +135,15 @@
   const splitUTM = (full, file = '', original = '') => {
     try {
       const u = new URL(full), p = u.searchParams;
-      return {
-        file, original, full,
-        source: p.get('utm_source') || '',
-        medium: p.get('utm_medium') || '',
-        campaign: p.get('utm_campaign') || '',
-        term: p.get('utm_term') || '',
-        content: p.get('utm_content') || ''
+      return { file, original, full,
+        source: p.get('utm_source')||'',
+        medium: p.get('utm_medium')||'',
+        campaign: p.get('utm_campaign')||'',
+        term: p.get('utm_term')||'',
+        content: p.get('utm_content')||''
       };
     } catch {
-      return { file, original, full, source: '', medium: '', campaign: '', term: '', content: '' };
+      return { file, original, full, source:'', medium:'', campaign:'', term:'', content:'' };
     }
   };
 
@@ -187,6 +188,22 @@
     await Promise.all(
       Object.keys(zip.files)
         .filter(name => /^ppt\/media\/.*\.(png|jpg|jpeg)$/i.test(name))
+        .map(async name => {
+          const blob = await zip.files[name].async('blob');
+          const data = await decodeImage(blob);
+          if (data) urls.push(data);
+        })
+    );
+    return urls;
+  }
+
+  async function decodeZip(file) {
+    const buf = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    const urls = [];
+    await Promise.all(
+      Object.keys(zip.files)
+        .filter(name => /\.(png|jpe?g)$/i.test(name))
         .map(async name => {
           const blob = await zip.files[name].async('blob');
           const data = await decodeImage(blob);
@@ -263,6 +280,10 @@
         else newRows.push(badRow('No QR found', name));
       } else if (/\.pptx$/i.test(name)) {
         const urls = await decodePptx(f);
+        if (urls.length) for (let u of urls) await resolveLink(u, newRows, name);
+        else newRows.push(badRow('No QR found', name));
+      } else if (/\.zip$/i.test(name)) {
+        const urls = await decodeZip(f);
         if (urls.length) for (let u of urls) await resolveLink(u, newRows, name);
         else newRows.push(badRow('No QR found', name));
       } else {
