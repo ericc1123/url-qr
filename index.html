@@ -15,172 +15,100 @@
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.worker.min.js';
   </script>
 
+  <!-- JSZip for PPTX unpacking -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+
   <!-- Feather icons -->
   <script src="https://unpkg.com/feather-icons"></script>
 
   <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      background: linear-gradient(135deg, #eef2ff 0%, #e5e9ff 50%, #f1efff 100%);
+    body { margin:0; font-family:"Segoe UI",system-ui,-apple-system,sans-serif; min-height:100vh;
+      display:flex; justify-content:center; align-items:flex-start;
+      background:linear-gradient(135deg,#eef2ff 0%,#e5e9ff 50%,#f1efff 100%);
     }
-    main {
-      max-width: 1000px;
-      width: 100%;
-      padding: 40px 20px;
+    main { max-width:1000px; width:100%; padding:40px 20px; }
+    h1 { font-size:2.5rem; margin:0 0 .5rem; text-align:center; color:#1f2937; }
+    p.subtitle { text-align:center; margin:0 0 2rem; color:#475569; }
+    .card { background:#f0f5ff; border:1px solid #c7d2fe; border-radius:16px;
+      padding:24px; margin-bottom:32px; box-shadow:inset 0 1px 4px rgba(0,0,0,0.05);
     }
-    h1 {
-      font-size: 2.5rem;
-      margin: 0 0 0.5rem;
-      text-align: center;
-      color: #1f2937;
+    .btn { display:inline-flex; align-items:center; gap:6px;
+      padding:10px 18px; font-size:1rem; font-weight:600; border:none;
+      border-radius:12px; cursor:pointer; user-select:none;
+      transition:transform .1s, background .2s;
     }
-    p.subtitle {
-      text-align: center;
-      margin: 0 0 2rem;
-      color: #475569;
+    .btn:active { transform:scale(.97); }
+    .btn-primary { background:#4f46e5; color:#fff; }
+    .btn-primary:hover { background:#4338ca; }
+    .btn-secondary { background:#f1f5f9; color:#334155; }
+    .btn-secondary:hover { background:#e2e8f0; }
+    .input-row { display:flex; align-items:center; gap:8px; }
+    .input-row span { width:24px; text-align:right; color:#64748b; }
+    .input-row input { flex:1; border:1px solid #cbd5e1; border-radius:10px;
+      padding:8px 10px; font-size:.925rem;
     }
-    .card {
-      background: #f0f5ff;
-      border: 1px solid #c7d2fe;
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 32px;
-      box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
+    .input-row input:focus { outline:2px solid #6366f1; border-color:#6366f1; }
+    #dropzone { display:flex; flex-direction:column; justify-content:center;
+      align-items:center; height:150px; border:2px dashed #93c5fd;
+      border-radius:16px; background:#e0f2ff; color:#334155;
+      cursor:pointer; transition:background .2s;
     }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 10px 18px;
-      font-size: 1rem;
-      font-weight: 600;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      user-select: none;
-      transition: transform 0.1s, background 0.2s;
+    #dropzone.hover { background:#bae6fd; }
+    #dropzone span { font-size:.9rem; }
+    #fileCounter { margin-top:10px; font-size:.85rem; color:#475569; }
+    .table-wrapper { overflow-x:auto; }
+    table { border-collapse:collapse; width:100%; font-size:.85rem;
+      background:#fff; border:1px solid #cbd5e1; border-radius:12px;
+      overflow:hidden;
     }
-    .btn:active {
-      transform: scale(0.97);
-    }
-    .btn-primary {
-      background: #4f46e5;
-      color: #fff;
-    }
-    .btn-primary:hover {
-      background: #4338ca;
-    }
-    .btn-secondary {
-      background: #f1f5f9;
-      color: #334155;
-    }
-    .btn-secondary:hover {
-      background: #e2e8f0;
-    }
-    .input-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .input-row span {
-      width: 24px;
-      text-align: right;
-      color: #64748b;
-    }
-    .input-row input {
-      flex: 1;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 0.925rem;
-    }
-    .input-row input:focus {
-      outline: 2px solid #6366f1;
-      border-color: #6366f1;
-    }
-    #dropzone {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 150px;
-      border: 2px dashed #93c5fd;
-      border-radius: 16px;
-      background: #e0f2ff;
-      color: #334155;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    #dropzone.hover {
-      background: #bae6fd;
-    }
-    #dropzone span {
-      font-size: 0.9rem;
-    }
-    #fileCounter {
-      margin-top: 10px;
-      font-size: 0.85rem;
-      color: #475569;
-    }
-    .table-wrapper {
-      overflow-x: auto;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      font-size: 0.85rem;
-      background: #fff;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 8px 10px;
-      border: 1px solid #cbd5e1;
-      text-align: left;
-    }
-    th {
-      background: #e0e7ff;
-      font-weight: 600;
-      color: #1e293b;
-    }
-    tr:nth-child(odd) td {
-      background: #f8fafc;
-    }
+    th, td { padding:8px 10px; border:1px solid #cbd5e1; text-align:left; }
+    th { background:#e0e7ff; font-weight:600; color:#1e293b; }
+    tr:nth-child(odd) td { background:#f8fafc; }
   </style>
 </head>
 <body>
 <main>
   <h1>URL & QR Expander</h1>
-  <p class="subtitle">Paste shortened links or upload images/PDFs → get original URL, resolved URL, UTM splits, and source file.</p>
+  <p class="subtitle">
+    Paste shortened links or upload images, PDFs, or PPTX — extract QR codes,
+    see original & resolved URLs, UTM splits, and source file.
+  </p>
 
   <section class="card">
     <h2><i data-feather="link-2"></i>Shortened URLs</h2>
     <div id="inputArea" style="margin-top:18px; display:flex; flex-direction:column; gap:12px;">
-      <div class="input-row"><span>1.</span><input type="text" placeholder="bit.ly/..." /></div>
+      <div class="input-row"><span>1.</span>
+        <input type="text" placeholder="bit.ly/..." />
+      </div>
     </div>
-    <button id="addRow" class="btn btn-secondary" style="margin-top:16px;"><i data-feather="plus"></i> Add Row</button>
+    <button id="addRow" class="btn btn-secondary" style="margin-top:16px;">
+      <i data-feather="plus"></i> Add Row
+    </button>
   </section>
 
   <section class="card">
-    <h2><i data-feather="image"></i>QR-code Images & PDFs</h2>
+    <h2><i data-feather="image"></i>Images, PDFs & PPTX</h2>
     <div id="dropzone" style="margin-top:18px;">
       <span><strong>Click</strong> or drag & drop files here</span>
-      <span style="font-size:.8rem;">PNG / JPG / PDF • multiple allowed</span>
-      <input type="file" id="fileInput" accept="image/*,application/pdf" multiple hidden>
+      <span style="font-size:.8rem;">PNG/JPG/PDF/PPTX • multiple allowed</span>
+      <input type="file" id="fileInput"
+        accept="image/*,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        multiple hidden>
     </div>
     <div id="fileCounter">0 files selected</div>
   </section>
 
-  <div style="text-align:center; margin-bottom:12px; display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
-    <button id="extract" class="btn btn-primary"><i data-feather="play"></i> Extract</button>
-    <button id="exportCSV" class="btn btn-secondary"><i data-feather="download"></i> Export CSV</button>
-    <button id="clearAll" class="btn btn-secondary"><i data-feather="trash-2"></i> Clear</button>
+  <div style="text-align:center; margin-bottom:12px; display:flex;
+    justify-content:center; gap:16px; flex-wrap:wrap;">
+    <button id="extract" class="btn btn-primary">
+      <i data-feather="play"></i> Extract
+    </button>
+    <button id="exportCSV" class="btn btn-secondary">
+      <i data-feather="download"></i> Export CSV
+    </button>
+    <button id="clearAll" class="btn btn-secondary">
+      <i data-feather="trash-2"></i> Clear
+    </button>
   </div>
 
   <section id="results-wrapper" class="card" hidden>
@@ -196,72 +124,95 @@
   let queuedFiles = [];
 
   const counterEl = document.getElementById('fileCounter');
-  const updateCounter = () => counterEl.textContent = `${queuedFiles.length} file${queuedFiles.length!==1?'s':''} selected`;
+  const updateCounter = () =>
+    counterEl.textContent = `${queuedFiles.length} file${queuedFiles.length!==1?'s':''} selected`;
 
-  const badRow = (msg,file='') => ({file, original:'', full:`⚠️ ${msg}`, source:'', medium:'', campaign:'', term:'', content:''});
-  const splitUTM = (full,file='',original='') => {
-    try{
-      const u=new URL(full), p=u.searchParams;
-      return { file, original, full,
-        source: p.get('utm_source')||'', medium: p.get('utm_medium')||'',
-        campaign: p.get('utm_campaign')||'', term: p.get('utm_term')||'',
-        content: p.get('utm_content')||'' };
+  const badRow = (msg, file = '') =>
+    ({ file, original: '', full: `⚠️ ${msg}`, source: '', medium: '', campaign: '', term: '', content: '' });
+
+  const splitUTM = (full, file = '', original = '') => {
+    try {
+      const u = new URL(full), p = u.searchParams;
+      return {
+        file, original, full,
+        source: p.get('utm_source') || '',
+        medium: p.get('utm_medium') || '',
+        campaign: p.get('utm_campaign') || '',
+        term: p.get('utm_term') || '',
+        content: p.get('utm_content') || ''
+      };
     } catch {
-      return { file, original, full, source:'', medium:'', campaign:'', term:'', content:'' };
+      return { file, original, full, source: '', medium: '', campaign: '', term: '', content: '' };
     }
   };
 
   const decodeImage = file => new Promise(res => {
-    const fr=new FileReader();
+    const fr = new FileReader();
     fr.onload = () => {
-      const img=new Image();
+      const img = new Image();
       img.onload = () => {
-        const c=document.createElement('canvas');
-        c.width=img.width; c.height=img.height;
-        c.getContext('2d').drawImage(img,0,0);
-        const d=c.getContext('2d').getImageData(0,0,c.width,c.height);
-        const code=jsQR(d.data,c.width,c.height);
-        res(code?code.data:null);
+        const c = document.createElement('canvas');
+        c.width = img.width; c.height = img.height;
+        c.getContext('2d').drawImage(img, 0, 0);
+        const d = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+        const code = jsQR(d.data, c.width, c.height);
+        res(code ? code.data : null);
       };
       img.src = fr.result;
     };
     fr.readAsDataURL(file);
   });
 
-  async function decodePdf(file){
+  async function decodePdf(file) {
     const buf = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({data:buf}).promise;
-    const urls=[];
-    for(let i=1;i<=pdf.numPages;i++){
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    const urls = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
-      const vp = page.getViewport({scale:2});
+      const vp = page.getViewport({ scale: 2 });
       const c = document.createElement('canvas');
       c.width = vp.width; c.height = vp.height;
-      await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
-      const d = c.getContext('2d').getImageData(0,0,c.width,c.height);
-      const code = jsQR(d.data,c.width,c.height);
-      if(code&&code.data) urls.push(code.data);
+      await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      const d = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+      const code = jsQR(d.data, c.width, c.height);
+      if (code && code.data) urls.push(code.data);
     }
     return urls;
   }
 
-  async function resolveLink(raw,bucket,fileLabel=''){
-    const norm = /^https?:\/\//i.test(raw)?raw:`https://${raw}`;
-    try{
+  async function decodePptx(file) {
+    const buf = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    const urls = [];
+    await Promise.all(
+      Object.keys(zip.files)
+        .filter(name => /^ppt\/media\/.*\.(png|jpg|jpeg)$/i.test(name))
+        .map(async name => {
+          const blob = await zip.files[name].async('blob');
+          const data = await decodeImage(blob);
+          if (data) urls.push(data);
+        })
+    );
+    return urls;
+  }
+
+  async function resolveLink(raw, bucket, fileLabel = '') {
+    const norm = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    try {
       const resp = await fetch(API_ROOT + encodeURIComponent(norm));
       const j = await resp.json();
-      if(j&&j.resolved_url) bucket.push(splitUTM(j.resolved_url,fileLabel,raw));
-      else bucket.push(badRow(`Could not resolve (${raw})`,fileLabel));
+      if (j && j.resolved_url) bucket.push(splitUTM(j.resolved_url, fileLabel, raw));
+      else bucket.push(badRow(`Could not resolve (${raw})`, fileLabel));
     } catch {
-      bucket.push(badRow(`Error (${raw})`,fileLabel));
+      bucket.push(badRow(`Error (${raw})`, fileLabel));
     }
   }
 
-  function appendRows(rows,startIdx){
-    if(!rows.length) return;
-    document.getElementById('results-wrapper').hidden=false;
+  function appendRows(rows, startIdx) {
+    if (!rows.length) return;
+    document.getElementById('results-wrapper').hidden = false;
     let tbl = document.querySelector('#results table');
-    if(!tbl){
+    if (!tbl) {
       tbl = document.createElement('table');
       tbl.innerHTML = `<thead><tr>
         <th>#</th><th>File</th><th>Original URL</th><th>Resolved URL</th>
@@ -271,7 +222,7 @@
       document.getElementById('results').appendChild(tbl);
     }
     const tbody = tbl.querySelector('tbody');
-    rows.forEach((r,i) => {
+    rows.forEach((r, i) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${startIdx + i + 1}</td>
@@ -286,8 +237,7 @@
 
   document.getElementById('addRow').onclick = () => {
     const count = document.querySelectorAll('#inputArea .input-row').length + 1;
-    const div = document.createElement('div');
-    div.className = 'input-row';
+    const div = document.createElement('div'); div.className = 'input-row';
     div.innerHTML = `<span>${count}.</span><input type="text" placeholder="bit.ly/..."/>`;
     document.getElementById('inputArea').appendChild(div);
   };
@@ -301,34 +251,41 @@
   dzElm.addEventListener('drop', e => { queuedFiles = [...queuedFiles, ...e.dataTransfer.files]; updateCounter(); });
 
   document.getElementById('extract').onclick = async () => {
-    const rawLinks = [...document.querySelectorAll('#inputArea input')].map(i => i.value.trim()).filter(Boolean);
+    const rawLinks = [...document.querySelectorAll('#inputArea input')]
+      .map(i => i.value.trim()).filter(Boolean);
     const newRows = [];
-    for(let link of rawLinks) await resolveLink(link, newRows, '');
-    for(let f of queuedFiles){
-      if(f.type === 'application/pdf'){
+    for (let link of rawLinks) await resolveLink(link, newRows, '');
+    for (let f of queuedFiles) {
+      const name = f.name;
+      if (f.type === 'application/pdf') {
         const urls = await decodePdf(f);
-        if(urls.length) for(let u of urls) await resolveLink(u, newRows, f.name);
-        else newRows.push(badRow('No QR found', f.name));
+        if (urls.length) for (let u of urls) await resolveLink(u, newRows, name);
+        else newRows.push(badRow('No QR found', name));
+      } else if (/\.pptx$/i.test(name)) {
+        const urls = await decodePptx(f);
+        if (urls.length) for (let u of urls) await resolveLink(u, newRows, name);
+        else newRows.push(badRow('No QR found', name));
       } else {
         const u = await decodeImage(f);
-        if(u) await resolveLink(u, newRows, f.name);
-        else newRows.push(badRow('QR decode failed', f.name));
+        if (u) await resolveLink(u, newRows, name);
+        else newRows.push(badRow('QR decode failed', name));
       }
     }
-    queuedFiles = []; updateCounter();
+    queuedFiles = [];
+    updateCounter();
     const start = resultsData.length;
     resultsData = resultsData.concat(newRows);
     appendRows(newRows, start);
   };
 
   document.getElementById('exportCSV').onclick = () => {
-    if(!resultsData.length){ alert('No results to export.'); return; }
+    if (!resultsData.length) { alert('No results to export.'); return; }
     const header = ['#','file_name','original_url','resolved_url','utm_source','utm_medium','utm_campaign','utm_term','utm_content'];
     const rows = resultsData.map((r,i) => [i+1, r.file||'', r.original||'', r.full, r.source, r.medium, r.campaign, r.term, r.content]);
     const csv = [header, ...rows]
-      .map(row => row.map(val => `"${String(val||'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+      .map(row => row.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
     const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
-    const a = document.createElement('a'); a.style.display='none';
+    const a = document.createElement('a'); a.style.display = 'none';
     a.href = URL.createObjectURL(blob); a.download = 'results.csv'; document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 150);
   };
