@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>URL & QR Expander</title>
 
-  <!-- jsQR – QR decoding -->
+  <!-- jsQR for QR decoding -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
-  <!-- pdf.js – scan QR codes inside PDFs -->
+  <!-- pdf.js for scanning PDFs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -37,14 +38,6 @@
       margin: 0 0 0.5rem;
       text-align: center;
       color: #1f2937;
-    }
-    h2 {
-      font-size: 1.25rem;
-      margin: 0;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: #1d4ed8;
     }
     p.subtitle {
       text-align: center;
@@ -164,39 +157,32 @@
 <body>
 <main>
   <h1>URL & QR Expander</h1>
-  <p class="subtitle">
-    Paste shortened links or upload images/PDFs with QR codes →
-    resolved URLs, UTM splits, source file & original link.
-  </p>
+  <p class="subtitle">Paste shortened links or upload images/PDFs → get original URL, resolved URL, UTM splits, and source file.</p>
 
-  <!-- Short URL input -->
   <section class="card">
     <h2><i data-feather="link-2"></i>Shortened URLs</h2>
     <div id="inputArea" style="margin-top:18px; display:flex; flex-direction:column; gap:12px;">
-      <div class="input-row"><span>1.</span><input type="text" placeholder="bit.ly/..."/></div>
+      <div class="input-row"><span>1.</span><input type="text" placeholder="bit.ly/..." /></div>
     </div>
     <button id="addRow" class="btn btn-secondary" style="margin-top:16px;"><i data-feather="plus"></i> Add Row</button>
   </section>
 
-  <!-- File uploads -->
   <section class="card">
-    <h2><i data-feather="image"></i>QR Images & PDFs</h2>
+    <h2><i data-feather="image"></i>QR-code Images & PDFs</h2>
     <div id="dropzone" style="margin-top:18px;">
-      <span><strong>Click to select</strong> or drag & drop files here</span>
+      <span><strong>Click</strong> or drag & drop files here</span>
       <span style="font-size:.8rem;">PNG / JPG / PDF • multiple allowed</span>
-      <input type="file" id="fileInput" accept="image/*,application/pdf" multiple hidden />
+      <input type="file" id="fileInput" accept="image/*,application/pdf" multiple hidden>
     </div>
     <div id="fileCounter">0 files selected</div>
   </section>
 
-  <!-- Controls -->
   <div style="text-align:center; margin-bottom:12px; display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
     <button id="extract" class="btn btn-primary"><i data-feather="play"></i> Extract</button>
     <button id="exportCSV" class="btn btn-secondary"><i data-feather="download"></i> Export CSV</button>
     <button id="clearAll" class="btn btn-secondary"><i data-feather="trash-2"></i> Clear</button>
   </div>
 
-  <!-- Results -->
   <section id="results-wrapper" class="card" hidden>
     <h2><i data-feather="list"></i>Results</h2>
     <div id="results" class="table-wrapper" style="margin-top:18px;"></div>
@@ -210,37 +196,31 @@
   let queuedFiles = [];
 
   const counterEl = document.getElementById('fileCounter');
-  const updateCounter = () => {
-    counterEl.textContent = `${queuedFiles.length} file${queuedFiles.length!==1?'s':''} selected`;
-  };
+  const updateCounter = () => counterEl.textContent = `${queuedFiles.length} file${queuedFiles.length!==1?'s':''} selected`;
 
-  const badRow = (msg,file='') => ({file,original:'',full:`⚠️ ${msg}`,source:'',medium:'',campaign:'',term:'',content:''});
+  const badRow = (msg,file='') => ({file, original:'', full:`⚠️ ${msg}`, source:'', medium:'', campaign:'', term:'', content:''});
   const splitUTM = (full,file='',original='') => {
-    try {
-      const u = new URL(full);
-      const p = u.searchParams;
+    try{
+      const u=new URL(full), p=u.searchParams;
       return { file, original, full,
-        source: p.get('utm_source')||'',
-        medium: p.get('utm_medium')||'',
-        campaign: p.get('utm_campaign')||'',
-        term: p.get('utm_term')||'',
-        content: p.get('utm_content')||''
-      };
+        source: p.get('utm_source')||'', medium: p.get('utm_medium')||'',
+        campaign: p.get('utm_campaign')||'', term: p.get('utm_term')||'',
+        content: p.get('utm_content')||'' };
     } catch {
       return { file, original, full, source:'', medium:'', campaign:'', term:'', content:'' };
     }
   };
 
   const decodeImage = file => new Promise(res => {
-    const fr = new FileReader();
+    const fr=new FileReader();
     fr.onload = () => {
-      const img = new Image();
+      const img=new Image();
       img.onload = () => {
-        const c = document.createElement('canvas');
-        c.width = img.width; c.height = img.height;
+        const c=document.createElement('canvas');
+        c.width=img.width; c.height=img.height;
         c.getContext('2d').drawImage(img,0,0);
-        const d = c.getContext('2d').getImageData(0,0,c.width,c.height);
-        const code = jsQR(d.data,c.width,c.height);
+        const d=c.getContext('2d').getImageData(0,0,c.width,c.height);
+        const code=jsQR(d.data,c.width,c.height);
         res(code?code.data:null);
       };
       img.src = fr.result;
@@ -251,29 +231,29 @@
   async function decodePdf(file){
     const buf = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({data:buf}).promise;
-    const urls = [];
+    const urls=[];
     for(let i=1;i<=pdf.numPages;i++){
       const page = await pdf.getPage(i);
       const vp = page.getViewport({scale:2});
       const c = document.createElement('canvas');
       c.width = vp.width; c.height = vp.height;
-      await page.render({canvasContext:c.getContext('2d'), viewport:vp}).promise;
+      await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
       const d = c.getContext('2d').getImageData(0,0,c.width,c.height);
       const code = jsQR(d.data,c.width,c.height);
-      if(code && code.data) urls.push(code.data);
+      if(code&&code.data) urls.push(code.data);
     }
     return urls;
   }
 
   async function resolveLink(raw,bucket,fileLabel=''){
     const norm = /^https?:\/\//i.test(raw)?raw:`https://${raw}`;
-    try {
+    try{
       const resp = await fetch(API_ROOT + encodeURIComponent(norm));
       const j = await resp.json();
-      if(j && j.resolved_url) bucket.push(splitUTM(j.resolved_url,fileLabel,raw));
-      else bucket.push(badRow(`Could not resolve (${raw})`, fileLabel));
+      if(j&&j.resolved_url) bucket.push(splitUTM(j.resolved_url,fileLabel,raw));
+      else bucket.push(badRow(`Could not resolve (${raw})`,fileLabel));
     } catch {
-      bucket.push(badRow(`Error (${raw})`, fileLabel));
+      bucket.push(badRow(`Error (${raw})`,fileLabel));
     }
   }
 
@@ -305,27 +285,25 @@
   }
 
   document.getElementById('addRow').onclick = () => {
-    const idx = document.querySelectorAll('#inputArea .input-row').length + 1;
-    const d = document.createElement('div'); d.className = 'input-row';
-    d.innerHTML = `<span>${idx}.</span><input type="text" placeholder="bit.ly/...">`;
-    document.getElementById('inputArea').appendChild(d);
+    const count = document.querySelectorAll('#inputArea .input-row').length + 1;
+    const div = document.createElement('div');
+    div.className = 'input-row';
+    div.innerHTML = `<span>${count}.</span><input type="text" placeholder="bit.ly/..."/>`;
+    document.getElementById('inputArea').appendChild(div);
   };
 
-  // file picker & drop zone
-  const picker = document.getElementById('fileInput');
-  picker.onchange = e => { queuedFiles = [...queuedFiles, ...e.target.files]; updateCounter(); };
-  const dzEl = document.getElementById('dropzone');
-  dzEl.onclick = () => picker.click();
-  ['dragenter','dragover'].forEach(evt => dzEl.addEventListener(evt,e => { e.preventDefault(); dzEl.classList.add('hover'); }));
-  ['dragleave','drop','dragend'].forEach(evt => dzEl.addEventListener(evt,e => { e.preventDefault(); dzEl.classList.remove('hover'); }));
-  dzEl.addEventListener('drop', e => { queuedFiles = [...queuedFiles, ...e.dataTransfer.files]; updateCounter(); });
+  const pickerEl = document.getElementById('fileInput');
+  pickerEl.onchange = e => { queuedFiles = [...queuedFiles, ...e.target.files]; updateCounter(); };
+  const dzElm = document.getElementById('dropzone');
+  dzElm.onclick = () => pickerEl.click();
+  ['dragenter','dragover'].forEach(evt => dzElm.addEventListener(evt, e => { e.preventDefault(); dzElm.classList.add('hover'); }));
+  ['dragleave','drop','dragend'].forEach(evt => dzElm.addEventListener(evt, e => { e.preventDefault(); dzElm.classList.remove('hover'); }));
+  dzElm.addEventListener('drop', e => { queuedFiles = [...queuedFiles, ...e.dataTransfer.files]; updateCounter(); });
 
-  // extract
   document.getElementById('extract').onclick = async () => {
-    const rawLinks = [...document.querySelectorAll('#inputArea input')]
-      .map(i => i.value.trim()).filter(Boolean);
+    const rawLinks = [...document.querySelectorAll('#inputArea input')].map(i => i.value.trim()).filter(Boolean);
     const newRows = [];
-    for(let l of rawLinks) await resolveLink(l, newRows, '');
+    for(let link of rawLinks) await resolveLink(link, newRows, '');
     for(let f of queuedFiles){
       if(f.type === 'application/pdf'){
         const urls = await decodePdf(f);
@@ -343,22 +321,22 @@
     appendRows(newRows, start);
   };
 
-  // export CSV
   document.getElementById('exportCSV').onclick = () => {
     if(!resultsData.length){ alert('No results to export.'); return; }
-    const head = ['#','file_name','original_url','resolved_url','utm_source','utm_medium','utm_campaign','utm_term','utm_content'];
-    const rows = resultsData.map((r,i) => [ i+1, r.file||'', r.original||'', r.full, r.source, r.medium, r.campaign, r.term, r.content ]);
-    const csv = [head, ...rows]
-      .map(row => row.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    const header = ['#','file_name','original_url','resolved_url','utm_source','utm_medium','utm_campaign','utm_term','utm_content'];
+    const rows = resultsData.map((r,i) => [i+1, r.file||'', r.original||'', r.full, r.source, r.medium, r.campaign, r.term, r.content]);
+    const csv = [header, ...rows]
+      .map(row => row.map(val => `"${String(val||'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
     const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
-    const a = document.createElement('a'); a.style.display='none'; a.href = URL.createObjectURL(blob);
-    a.download = 'results.csv'; document.body.appendChild(a); a.click();
+    const a = document.createElement('a'); a.style.display='none';
+    a.href = URL.createObjectURL(blob); a.download = 'results.csv'; document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 150);
   };
 
-  // clear
   document.getElementById('clearAll').onclick = () => {
-    resultsData = []; queuedFiles = []; updateCounter();
+    resultsData = [];
+    queuedFiles = [];
+    updateCounter();
     document.getElementById('results').innerHTML = '';
     document.getElementById('results-wrapper').hidden = true;
   };
